@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Golf Tracker">
+<title>Fabio Golf Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  :root {
+    --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE;
+    --amber: #EF9F27; --amber-light: #FAEEDA; --amber-dark: #854F0B;
+    --red: #E24B4A; --red-light: #FCEBEB; --red-dark: #A32D2D;
+    --blue: #378ADD; --blue-light: #E6F1FB; --blue-dark: #185FA5;
+    --gray: #F4F4F2; --gray2: #E8E8E5; --text: #1a1a18; --text2: #5F5E5A; --text3: #9e9d99;
+    --border: rgba(0,0,0,0.1); --white: #ffffff; --radius: 10px; --radius-lg: 14px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --green: #2EC090; --green-dark: #5DCAA5; --green-light: #04342C;
+      --amber: #EF9F27; --amber-light: #412402; --amber-dark: #FAC775;
+      --red: #E24B4A; --red-light: #501313; --red-dark: #F7C1C1;
+      --blue: #5ba8f0; --blue-light: #042C53; --blue-dark: #B5D4F4;
+      --gray: #2a2a28; --gray2: #363634; --text: #f0efea; --text2: #b4b2a9; --text3: #6b6a66;
+      --border: rgba(255,255,255,0.1); --white: #1e1e1c; --shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--gray); color: var(--text); min-height: 100vh; }
+  .header { background: var(--white); border-bottom: 0.5px solid var(--border); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .header-icon { width: 36px; height: 36px; background: var(--green); border-radius: 9px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+  .header-title { font-size: 17px; font-weight: 600; }
+  .header-sub { font-size: 12px; color: var(--text2); }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); margin-left: auto; flex-shrink: 0; transition: background 0.3s; }
+  .sync-dot.ok { background: var(--green); }
+  .sync-dot.err { background: var(--red); }
+  .sync-dot.loading { background: var(--amber); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .tabs { display: flex; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { flex-shrink: 0; padding: 7px 13px; font-size: 13px; font-weight: 500; color: var(--text2); background: transparent; border: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; font-family: inherit; }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+  .content { padding: 14px; max-width: 680px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .stat-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 14px; }
+  .stat-card { background: var(--white); border-radius: var(--radius-lg); padding: 12px 14px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-val { font-size: 22px; font-weight: 600; line-height: 1.1; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .card { background: var(--white); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .card-title i { color: var(--green); font-size: 18px; }
+  .form-field { margin-bottom: 10px; }
+  .form-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%; padding: 10px 12px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--gray); color: var(--text);
+    font-size: 15px; font-family: inherit; appearance: none; -webkit-appearance: none;
+  }
+  .form-field textarea { height: 80px; resize: none; font-size: 13px; }
+  .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--green); background: var(--white); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 18px; border-radius: var(--radius); font-size: 15px; font-weight: 500; font-family: inherit; border: none; cursor: pointer; transition: all 0.15s; }
+  .btn-primary { background: var(--green); color: white; width: 100%; justify-content: center; margin-top: 4px; }
+  .btn-primary:active { background: var(--green-dark); transform: scale(0.98); }
+  .btn-danger { background: var(--red-light); color: var(--red-dark); font-size: 13px; padding: 7px 10px; }
+  .warn { background: var(--amber-light); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--amber-dark); margin-bottom: 12px; display: flex; gap: 8px; align-items: flex-start; }
+  .info-box { background: var(--green-light); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; color: var(--green-dark); margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 380px; }
+  th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text2); padding: 8px 10px; border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+  td { padding: 10px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-empty { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-green { background: var(--green-light); color: var(--green-dark); }
+  .badge-amber { background: var(--amber-light); color: var(--amber-dark); }
+  .badge-red { background: var(--red-light); color: var(--red-dark); }
+  .badge-blue { background: var(--blue-light); color: var(--blue-dark); }
+  .badge-gray { background: var(--gray2); color: var(--text2); }
+  .prog-wrap { background: var(--gray2); border-radius: 20px; height: 5px; overflow: hidden; width: 100%; }
+  .prog-bar { height: 100%; border-radius: 20px; transition: width 0.4s; }
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; pointer-events: none; }
+  .search-wrap input { padding-left: 36px !important; }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .filter-btn { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; font-family: inherit; background: var(--gray); color: var(--text2); border: none; cursor: pointer; }
+  .filter-btn.active { background: var(--green); color: white; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--green-light); color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  .loading-box { background: var(--white); border-radius: var(--radius-lg); padding: 24px 32px; text-align: center; font-size: 15px; font-weight: 500; }
+  .loading-box i { font-size: 32px; color: var(--green); display: block; margin-bottom: 10px; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SETUP SCREEN */
+  .setup-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .setup-card { background: var(--white); border-radius: var(--radius-lg); padding: 28px 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); }
+  .setup-icon { width: 56px; height: 56px; background: var(--green); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; margin: 0 auto 16px; }
+  .setup-title { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+  .setup-sub { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 20px; line-height: 1.5; }
+  .step { display: flex; gap: 12px; margin-bottom: 14px; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--green); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .step-text strong { color: var(--text); }
+  .code-block { background: var(--gray); border-radius: var(--radius); padding: 10px 12px; font-family: monospace; font-size: 11px; color: var(--text2); margin: 8px 0; line-height: 1.6; word-break: break-all; }
+  @media (max-width: 420px) { .stat-val { font-size: 18px; } .content { padding: 10px; } }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="setup-screen" style="display:none">
+  <div class="setup-card">
+    <div class="setup-icon"><i class="ti ti-golf"></i></div>
+    <div class="setup-title">Einmalige Einrichtung</div>
+    <div class="setup-sub">Verbinde das Tool mit Google Sheets damit alle Geräte synchronisiert sind.</div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">Öffne <strong>script.google.com</strong> → Neues Projekt → alles löschen → diesen Code einfügen und speichern:</div>
+    </div>
+    <div class="code-block" id="script-code" style="font-size:10px;max-height:120px;overflow-y:auto"></div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">Klick auf <strong>„Bereitstellen" → „Neue Bereitstellung"</strong> → Typ: <strong>Web-App</strong> → Zugriff: <strong>Jeder</strong> → Bereitstellen → URL kopieren</div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">Die kopierte URL hier unten einfügen:</div>
+    </div>
+
+    <div class="form-field">
+      <label>Google Apps Script URL</label>
+      <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/..." style="font-size:13px">
+    </div>
+    <button class="btn btn-primary" onclick="saveSetup()"><i class="ti ti-check"></i> Verbinden & starten</button>
+    <div id="setup-error" style="color:var(--red-dark);font-size:13px;margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-overlay" class="loading-overlay" style="display:none">
+  <div class="loading-box"><i class="ti ti-loader"></i>Wird geladen...</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" style="display:none">
+<div class="header">
+  <div class="header-top">
+    <div class="header-icon"><i class="ti ti-golf"></i></div>
+    <div>
+      <div class="header-title">Fabio Golf Tracker</div>
+      <div class="header-sub">Stunden · Karten · Einnahmen</div>
+    </div>
+    <div class="sync-dot" id="sync-dot" title="Sync-Status"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="showTab('stunde')">Eintragen</button>
+    <button class="tab-btn" onclick="showTab('karten')">10er Karten</button>
+    <button class="tab-btn" onclick="showTab('einnahmen')">Einnahmen</button>
+    <button class="tab-btn" onclick="showTab('stunden')">Stundenübersicht</button>
+    <button class="tab-btn" onclick="showTab('lookup')">Schnellsuche</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="stat-grid" id="stats-main"></div>
+    <div id="dashboard-warns"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-history"></i> Letzte Einheiten</div>
+      <div class="tbl-wrap" id="recent-log"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-ticket"></i> 10er Karten Übersicht</div>
+      <div class="tbl-wrap" id="dash-karten"></div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button class="btn" style="font-size:12px;color:var(--text3);border:none;background:transparent" onclick="resetSetup()"><i class="ti ti-settings"></i> Script-URL ändern</button>
+    </div>
+  </div>
+
+  <!-- STUNDE EINTRAGEN -->
+  <div class="panel" id="panel-stunde">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-plus"></i> Neue Einheit eintragen</div>
+      <div class="form-row">
+        <div class="form-field"><label>Datum</label><input type="date" id="f-datum"></div>
+        <div class="form-field">
+          <label>Kunde</label>
+          <input list="dl-kunden" id="f-kunde" placeholder="Name..." autocomplete="off" oninput="onKundeChange()">
+          <datalist id="dl-kunden"></datalist>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Produkt</label>
+          <select id="f-produkt" onchange="onProduktChange()">
+            <option value="Einzelstunde">Einzelstunde (1h · €100)</option>
+            <option value="Stunde (10er Karte)">Stunde von 10er Karte abziehen</option>
+            <option value="Saisonpaket">Saisonpaket (4h · €400)</option>
+            <option value="Platzreifekurs">Platzreifekurs (individuell)</option>
+            <option value="Trackman Miete">Trackman Miete (1h · €15)</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Stunden</label><input type="number" id="f-einheit" value="1" min="0.5" step="0.5"></div>
+      </div>
+      <div class="form-row" id="f-zahlung-row">
+        <div class="form-field">
+          <label>Zahlung</label>
+          <select id="f-zahlung">
+            <option value="">– ausstehend –</option>
+            <option value="Bar">Bar</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Bank">Bank</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Betrag (€)</label><input type="number" id="f-betrag" placeholder="0"></div>
+      </div>
+      <div class="form-field"><label>Notiz (optional)</label><input type="text" id="f-notiz" placeholder="z.B. Schwung-Analyse..."></div>
+      <div id="karte-info" style="display:none"></div>
+      <button class="btn btn-primary" onclick="eintragen()"><i class="ti ti-check"></i> Eintragen</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list"></i> Alle Einträge</div>
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" id="log-search" placeholder="Suche nach Kunde..." oninput="renderLog()">
+      </div>
+      <div class="tbl-wrap" id="log-table"></div>
+    </div>
+  </div>
+
+  <!-- 10ER KARTEN -->
+  <div class="panel" id="panel-karten">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-ticket"></i> Neue 10er Karte vergeben</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Kunde</label>
+          <input list="dl-kunden2" id="kk-kunde" placeholder="Name..." autocomplete="off">
+          <datalist id="dl-kunden2"></datalist>
+        </div>
+        <div class="form-field"><label>Kaufdatum</label><input type="date" id="kk-datum"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Zahlung</label>
+          <select id="kk-zahlung">
+            <option value="">– ausstehend –</option>
+            <option value="Bar">Bar</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Bank">Bank</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Betrag (€)</label><input type="number" id="kk-betrag" placeholder="900" value="900"></div>
+      </div>
+      <div class="form-field"><label>Notiz (z.B. Rabatt)</label><input type="text" id="kk-notiz" placeholder="z.B. Rabatt für Stammkunde..."></div>
+      <button class="btn btn-primary" onclick="karteVergeben()"><i class="ti ti-plus"></i> Karte vergeben</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-users"></i> Aktive 10er Karten</div>
+      <div class="tbl-wrap" id="karten-table"></div>
+    </div>
+  </div>
+
+  <!-- EINNAHMEN -->
+  <div class="panel" id="panel-einnahmen">
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="card-title" style="margin:0"><i class="ti ti-calendar-month"></i> Monat</div>
+        <select id="monat-select" onchange="renderEinnahmen()" style="flex:1;min-width:140px">
+          <option value="">Alle Monate</option>
+        </select>
+      </div>
+    </div>
+    <div class="stat-grid" id="einnahmen-stats"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-currency-euro"></i> Einnahmen-Log</div>
+      <div class="filter-row" id="zahl-filter">
+        <button class="filter-btn active" onclick="filterZ('')">Alle</button>
+        <button class="filter-btn" onclick="filterZ('Bar')">Bar</button>
+        <button class="filter-btn" onclick="filterZ('PayPal')">PayPal</button>
+        <button class="filter-btn" onclick="filterZ('Bank')">Bank</button>
+        <button class="filter-btn" onclick="filterZ('ausstehend')">Ausstehend</button>
+      </div>
+      <div class="tbl-wrap" id="einnahmen-table"></div>
+    </div>
+  </div>
+
+  <!-- STUNDENÜBERSICHT -->
+  <div class="panel" id="panel-stunden">
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="card-title" style="margin:0"><i class="ti ti-calendar-month"></i> Monat</div>
+        <select id="stunden-monat-select" onchange="renderStunden()" style="flex:1;min-width:140px">
+          <option value="">Alle Monate</option>
+        </select>
+      </div>
+    </div>
+    <div class="stat-grid" id="stunden-stats"></div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar"></i> Stunden nach Produkt</div>
+      <div class="tbl-wrap" id="stunden-produkt-table"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-ticket"></i> 10er Karten verkauft</div>
+      <div class="tbl-wrap" id="stunden-karten-table"></div>
+    </div>
+  </div>
+
+  <!-- SCHNELLSUCHE -->
+  <div class="panel" id="panel-lookup">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-zoom-in"></i> Kunden nachschlagen</div>
+      <div class="form-field">
+        <input list="dl-kunden3" id="lookup-input" placeholder="Name eingeben..." autocomplete="off" oninput="doLookup()" style="font-size:16px;padding:12px 14px;">
+        <datalist id="dl-kunden3"></datalist>
+      </div>
+    </div>
+    <div id="lookup-result"></div>
+  </div>
+
+</div>
+</div><!-- /main-app -->
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const SCRIPT_KEY = 'gt_script_url';
+const KUNDEN = ["Adrian Brennig","Alex Kohler","Alex Neumann","Alexander Schulz","Alexander von Lukowitz","Alexander Weishaupt","Andre Dreyer","Andreas Ho","Andreas Josten","Andreas Kahn","Andreas Mildschlag","Andreas Rausch","Anette Russ","Anja Weise","Anne Schuster","Anton Safonov","Arne Hosemann","Arno Hetzel","Bao","Bashaar","Basti Guericke","Basti Ruthenberg","Bernd Binnebös","Bernd Dreithaler","Bert Reents","Bertrand Malpel","Björn Buchholz","Björn Schwetge","Brita Tyedmers","Bruno Garcia","Cameron Norman","Chris Stotz","Christian Ahlers","Christian Danne","Christian Doerschlag","Christian Gärtner","Christian Goga","Christian Meine","Christian Zimmer","Christina Oelke","Claudia Hinz","Claudia Lipp","Claudia Loop","Conner Sadewasser","Constantin","Constantin Schünemann","Corina","Cuong","Dana Heise","Daniel Becker","Daniela Peth","Darryl Leung","Dat Van Le","David Gunderlach","David Hirst","David Tabellion","Dennis Dünnwald","Dennis Maruhn","Dieter Jentsch","Doreen","Elisa","Elke","Fabian Wiesner","Felix Benscheid","Felix Bönisch","Felix Würzberg","Finn","Frank Bayer","Frank Betzholz","Frank Dolejs","Frank Giersberg","Frank Stolp","Frauke","Friederike Herzberg","Gabi","Gabi Lück","Gernot","Hans Joachim Reck","Hans Jörg Halbartschlager","Heike Penning","Henrik Hinz","Henrik Kipp","Hien","Holger Hübsch","Holger Troll","Ingrid","Jacopo Nuzzi","James Cruickshank","James Norman","Jan Schaumann","Janis","Janis Thiede","Jannis Felge","Janus Thiede","Jeff","Johannes Knötig","Johannes Wolff","Jonas Hansen","Jonas vdB","Jörg","Jost Dieckhaus","Judith","Judith Jakob","Jule","Julia Schmäu","Julian Weitz","Julius Wieczorke","Justus Karohl","Kai Winkelmann","Karen Bergauer","Karl Bühring","Karsten","Karsten Kropat","Karsten Sommer","Kerstin","Kevin Wu","Kristy","Lauritz Gieseke","Linus Dahlander","Malte Labonte","Manh","Manuela Kramer","Marc Grewenig","Marc Knackstedt","Marco Leder","Maret","Marie Alof","Martin Kalinowski","Marvin Maiwald","Matthias Jungwirth","Matthias Mühlenberg","Max Hackelöer","Max Iliew","Max Paproth","Max Reichel","Maximilian Tischer","Mert Yildirim","Michael Gehrmann","Michaela","Mirco Paschen","Nadine Fritsche","Nadine Mayer","Natascha","Nesar Rahimi","Nico","Niklas Grunewald","Nikolaus Laurentius","Nils Brochwitz","Nils Larsson","Nina Fischer","Nina Kröger","Noah","Olaf Haker","Ole Hacker","Oli Vietzke","Paul Wagmüller","Peter","Peter Lecour","Peter Zeschke","Pier","Pier Dang","Pilar","Rafa","Rafif Yalda","Renate","René Jakubczyk","Rhan Gunderlach","Robert","Robert Junghanns","Robert Meusel","Robin Stegemann","Roman","Rosa Tabara","Rosi","Sabine Head-Kayser","Samir","Samuel Smelty","Sandra","Sandra Thiede","Sarah","Sarah Hansen","Sean Hannan","Seb Andrew","Sebastian Seifried","Sebastian Vieweger","Simone Gatz","Soheil Mirpour","Stefan","Stefan Betke","Stefan Hinz","Steffi Gwosc","Suk","Susanne Waclawiak","Susanne Waldow","Sven Hansen","Sven Markschläger","Thai","Thao Pham","Thomas Schoellkopf","Thomas Wittmann","Timo Herzberg","Timo Isensee","Tobi Schuhmann","Toni","Trung","Tülay","Türker","Ulf Kret","Unki","Ute Scholz","Van Nguyen","Vanessa","Victoria Pucko","Vivian Chen","Volker","Wanja Richter","Zack","Zelle"];
+const PREISE = {"Einzelstunde":100,"Stunde (10er Karte)":0,"Saisonpaket":400,"Platzreifekurs":null,"Trackman Miete":15};
+const STUNDEN_MAP = {"Einzelstunde":1,"Stunde (10er Karte)":1,"Saisonpaket":4,"Platzreifekurs":null,"Trackman Miete":1};
+const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+// ─── STATE ────────────────────────────────────────────────
+let SCRIPT_URL = '';
+let cache = { logs: [], karten: [] };
+let activeZF = '';
+
+// ─── APPS SCRIPT CODE (shown in setup) ────────────────────
+const APPS_SCRIPT = `function doGet(e) {
+  return handle(e);
+}
+function doPost(e) {
+  return handle(e);
+}
+function handle(e) {
+  var p = e.parameter;
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var logs = ss.getSheetByName('Logs') || ss.insertSheet('Logs');
+  var karten = ss.getSheetByName('Karten') || ss.insertSheet('Karten');
+  
+  if (logs.getLastRow() === 0) logs.appendRow(['id','datum','kunde','produkt','einheit','zahlung','betrag','notiz']);
+  if (karten.getLastRow() === 0) karten.appendRow(['id','datum','kunde','zahlung','notiz','betrag']);
+
+  var action = p.action;
+  var res = {};
+
+  if (action === 'read') {
+    res.logs = logs.getLastRow() > 1 ? logs.getRange(2, 1, logs.getLastRow()-1, 8).getValues().map(function(r){return{id:r[0],datum:r[1],kunde:r[2],produkt:r[3],einheit:r[4],zahlung:r[5],betrag:r[6],notiz:r[7]};}) : [];
+    res.karten = karten.getLastRow() > 1 ? karten.getRange(2, 1, karten.getLastRow()-1, 6).getValues().map(function(r){return{id:r[0],datum:r[1],kunde:r[2],zahlung:r[3],notiz:r[4],betrag:r[5]};}) : [];
+  } else if (action === 'addLog') {
+    var d = JSON.parse(p.data);
+    logs.appendRow([d.id,d.datum,d.kunde,d.produkt,d.einheit,d.zahlung,d.betrag,d.notiz]);
+    res.ok = true;
+  } else if (action === 'addKarte') {
+    var d = JSON.parse(p.data);
+    karten.appendRow([d.id,d.datum,d.kunde,d.zahlung,d.notiz,d.betrag]);
+    res.ok = true;
+  } else if (action === 'deleteLog') {
+    deleteRow(logs, p.id);
+    res.ok = true;
+  } else if (action === 'deleteKarte') {
+    deleteRow(karten, p.id);
+    res.ok = true;
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
+}
+function deleteRow(sheet, id) {
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(id)) { sheet.deleteRow(i+1); return; }
+  }
+}`;
+
+// ─── HELPERS ──────────────────────────────────────────────
+const g = id => document.getElementById(id);
+const fmtDate = d => { if(!d) return ''; const [y,m,day]=String(d).split('-'); return `${day}.${m}.${y}`; };
+const today = () => new Date().toISOString().split('T')[0];
+const initials = n => n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+const zahlClass = z => z==='Bar'?'badge-green':z==='PayPal'?'badge-blue':z==='Bank'?'badge-gray':'badge-amber';
+const setSyncDot = s => { const d=g('sync-dot'); if(d){ d.className='sync-dot '+(s||''); } };
+
+function showLoading(v) { g('loading-overlay').style.display = v ? 'flex' : 'none'; }
+
+// ─── API ──────────────────────────────────────────────────
+async function api(params) {
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url);
+  return r.json();
+}
+
+async function loadData() {
+  setSyncDot('loading');
+  try {
+    const res = await api({ action: 'read' });
+    cache.logs = (res.logs || []).map(l => ({
+      ...l,
+      datum: String(l.datum || '').slice(0,10),
+      einheit: parseFloat(l.einheit) || 0,
+      betrag: parseFloat(l.betrag) || 0,
+      id: String(l.id)
+    })).sort((a,b) => b.datum.localeCompare(a.datum));
+    cache.karten = (res.karten || []).map(k => ({
+      ...k,
+      datum: String(k.datum || '').slice(0,10),
+      betrag: parseFloat(k.betrag) || 0,
+      id: String(k.id)
+    })).sort((a,b) => b.datum.localeCompare(a.datum));
+    setSyncDot('ok');
+    fillDatalist();
+    renderAll();
+  } catch(e) {
+    setSyncDot('err');
+    alert('Verbindung zu Google Sheets fehlgeschlagen. Bitte Internetverbindung prüfen.');
+  }
+}
+
+// ─── SETUP ────────────────────────────────────────────────
+function initApp() {
+  g('script-code').textContent = APPS_SCRIPT;
+  SCRIPT_URL = localStorage.getItem(SCRIPT_KEY) || '';
+  if (SCRIPT_URL) {
+    g('setup-screen').style.display = 'none';
+    g('main-app').style.display = 'block';
+    g('f-datum').value = today();
+    g('kk-datum').value = today();
+    showLoading(true);
+    loadData().finally(() => showLoading(false));
+  } else {
+    g('setup-screen').style.display = 'flex';
+  }
+}
+
+async function saveSetup() {
+  const url = g('setup-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    g('setup-error').textContent = 'Bitte eine gültige Script-URL eingeben.';
+    return;
+  }
+  g('setup-error').textContent = 'Verbindung wird getestet...';
+  try {
+    const res = await fetch(url + '?action=read');
+    await res.json();
+    localStorage.setItem(SCRIPT_KEY, url);
+    SCRIPT_URL = url;
+    g('setup-screen').style.display = 'none';
+    g('main-app').style.display = 'block';
+    g('f-datum').value = today();
+    g('kk-datum').value = today();
+    showLoading(true);
+    await loadData();
+    showLoading(false);
+  } catch(e) {
+    g('setup-error').textContent = 'Verbindung fehlgeschlagen. URL nochmal prüfen.';
+  }
+}
+
+function resetSetup() {
+  if (!confirm('Script-URL zurücksetzen?')) return;
+  localStorage.removeItem(SCRIPT_KEY);
+  location.reload();
+}
+
+// ─── DATA HELPERS ─────────────────────────────────────────
+function getLogs() { return cache.logs; }
+function getKarten() { return cache.karten; }
+
+function getAlleKunden() {
+  const fromLogs = getLogs().map(l=>l.kunde);
+  const fromKarten = getKarten().map(k=>k.kunde);
+  return [...new Set([...KUNDEN, ...fromLogs, ...fromKarten])].filter(Boolean).sort();
+}
+
+function fillDatalist() {
+  const alle = getAlleKunden();
+  ['dl-kunden','dl-kunden2','dl-kunden3'].forEach(id => {
+    const el = g(id); if (!el) return;
+    el.innerHTML = alle.map(k=>`<option value="${k}">`).join('');
+  });
+}
+
+function getKarteStatus(kunde) {
+  const kartenGekauft = getKarten().filter(k=>k.kunde===kunde);
+  const anzahl = kartenGekauft.length;
+  if (!anzahl) return null;
+  const genutzt = getLogs().filter(l=>l.kunde===kunde && l.produkt==='Stunde (10er Karte)');
+  const total = anzahl * 10;
+  const used = genutzt.reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+  return { total, used, rest: Math.max(0, total-used), karten: anzahl };
+}
+
+// ─── TABS ─────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  g('panel-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    if(b.getAttribute('onclick').includes("'"+name+"'")) b.classList.add('active');
+  });
+  if(name==='dashboard') renderDashboard();
+  if(name==='karten') renderKarten();
+  if(name==='einnahmen'){ fillMonatSelect('monat-select'); renderEinnahmen(); }
+  if(name==='stunden'){ fillMonatSelect('stunden-monat-select'); renderStunden(); }
+  if(name==='stunde') renderLog();
+  window.scrollTo(0,0);
+}
+
+// ─── FORM LOGIC ───────────────────────────────────────────
+function onProduktChange() {
+  const p = g('f-produkt').value;
+  const istKarte = p === 'Stunde (10er Karte)';
+  const std = STUNDEN_MAP[p];
+  g('f-einheit').value = std !== null && std !== undefined ? std : '';
+  const preis = PREISE[p];
+  g('f-betrag').value = (preis === null || preis === undefined || istKarte) ? '' : preis;
+  g('f-zahlung-row').style.display = istKarte ? 'none' : '';
+  onKundeChange();
+}
+
+function onKundeChange() {
+  const kunde = g('f-kunde').value.trim();
+  const produkt = g('f-produkt').value;
+  const box = g('karte-info');
+  if (produkt !== 'Stunde (10er Karte)' || !kunde) { box.style.display='none'; return; }
+  const st = getKarteStatus(kunde);
+  if (st && st.rest > 0) {
+    const farbe = st.rest<=2?'var(--amber-dark)':'var(--green-dark)';
+    box.innerHTML = `<div class="info-box"><i class="ti ti-info-circle"></i><span><strong>${kunde}</strong> hat noch <strong style="color:${farbe}">${st.rest}h</strong> offen.</span></div>`;
+    box.style.display='block';
+  } else if (st && st.rest === 0) {
+    box.innerHTML = `<div class="warn"><i class="ti ti-alert-triangle"></i><span><strong>${kunde}</strong>s Karte ist aufgebraucht. Bitte neue Karte vergeben.</span></div>`;
+    box.style.display='block';
+  } else {
+    box.innerHTML = `<div class="warn"><i class="ti ti-alert-triangle"></i><span>Keine 10er Karte für <strong>${kunde}</strong> gefunden.</span></div>`;
+    box.style.display='block';
+  }
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────
+async function eintragen() {
+  const datum = g('f-datum').value;
+  const kunde = g('f-kunde').value.trim();
+  const produkt = g('f-produkt').value;
+  const einheit = parseFloat(g('f-einheit').value)||1;
+  const istKarte = produkt === 'Stunde (10er Karte)';
+  const zahlung = istKarte ? 'Karte' : g('f-zahlung').value;
+  const betrag = istKarte ? 0 : (parseFloat(g('f-betrag').value)||0);
+  const notiz = g('f-notiz').value.trim();
+  if (!datum || !kunde) { alert('Bitte Datum und Kunde angeben.'); return; }
+  showLoading(true);
+  try {
+    const entry = { id: Date.now(), datum, kunde, produkt, einheit, zahlung, betrag, notiz };
+    await api({ action: 'addLog', data: JSON.stringify(entry) });
+    g('f-kunde').value=''; g('f-notiz').value=''; g('f-betrag').value='';
+    g('f-einheit').value=1; g('karte-info').style.display='none';
+    await loadData();
+  } catch(e) { alert('Fehler beim Speichern. Bitte nochmal versuchen.'); }
+  showLoading(false);
+}
+
+async function karteVergeben() {
+  const kunde = g('kk-kunde').value.trim();
+  const datum = g('kk-datum').value;
+  const zahlung = g('kk-zahlung').value;
+  const notiz = g('kk-notiz').value.trim();
+  if (!kunde || !datum) { alert('Bitte Kunde und Datum angeben.'); return; }
+  showLoading(true);
+  try {
+    const betrag = parseFloat(g('kk-betrag').value)||900;
+    const entry = { id: Date.now(), datum, kunde, zahlung, notiz, betrag };
+    await api({ action: 'addKarte', data: JSON.stringify(entry) });
+    g('kk-kunde').value=''; g('kk-notiz').value=''; g('kk-betrag').value='900';
+    await loadData();
+    renderKarten();
+  } catch(e) { alert('Fehler beim Speichern.'); }
+  showLoading(false);
+}
+
+async function zahlungNachtragen(id) {
+  const methoden = ['Bar', 'PayPal', 'Bank'];
+  const wahl = prompt('Wie wurde bezahlt?
+1 = Bar
+2 = PayPal
+3 = Bank
+
+Zahl eingeben:');
+  if (!wahl) return;
+  const zahlung = methoden[parseInt(wahl)-1];
+  if (!zahlung) { alert('Ungültige Eingabe.'); return; }
+  showLoading(true);
+  try {
+    await api({ action: 'updateZahlung', id, zahlung });
+    await loadData();
+  } catch(e) { alert('Fehler beim Speichern.'); }
+  showLoading(false);
+}
+
+async function deleteLog(id) {
+  if (!confirm('Eintrag löschen?')) return;
+  showLoading(true);
+  try { await api({ action: 'deleteLog', id }); await loadData(); } catch(e) { alert('Fehler.'); }
+  showLoading(false);
+}
+
+async function deleteKarte(id) {
+  if (!confirm('Karte löschen?')) return;
+  showLoading(true);
+  try { await api({ action: 'deleteKarte', id }); await loadData(); } catch(e) { alert('Fehler.'); }
+  showLoading(false);
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderAll() {
+  renderDashboard();
+  renderLog();
+  renderKarten();
+  fillMonatSelect('monat-select');
+  fillMonatSelect('stunden-monat-select');
+}
+
+function renderDashboard() {
+  const alleLogsRaw = getLogs();
+  const alleKartenRaw = getKarten();
+  const jahr = '2026';
+  const logs = alleLogsRaw.filter(l=>(l.datum||'').startsWith(jahr));
+  const karten = alleKartenRaw.filter(k=>(k.datum||'').startsWith(jahr));
+  const alleKK = [...new Set(alleKartenRaw.map(k=>k.kunde))];
+  const totalH = logs.reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+  const einnahmenItems = [...karten, ...logs.filter(l=>l.produkt!=='Stunde (10er Karte)')];
+  const totalE = einnahmenItems.reduce((s,e)=>s+(e.betrag||0),0);
+  const ausstE = einnahmenItems.filter(e=>!e.zahlung||e.zahlung==='').reduce((s,e)=>s+(e.betrag||0),0);
+  const restH = alleKK.reduce((s,k)=>{ const st=getKarteStatus(k); return st?s+st.rest:s; },0);
+
+  g('stats-main').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Stunden 2026</div><div class="stat-val">${totalH}</div><div class="stat-sub">gegeben</div></div>
+    <div class="stat-card"><div class="stat-label">Einnahmen 2026</div><div class="stat-val">€${totalE.toLocaleString('de')}</div><div class="stat-sub">dieses Jahr</div></div>
+    <div class="stat-card"><div class="stat-label">Ausstehend 2026</div><div class="stat-val" style="color:var(--amber)">€${ausstE.toLocaleString('de')}</div></div>
+    <div class="stat-card"><div class="stat-label">Karten-Rest</div><div class="stat-val" style="color:var(--green)">${restH}h</div><div class="stat-sub">offen (alle Jahre)</div></div>
+  `;
+
+  const warns = alleKK.filter(k=>{ const st=getKarteStatus(k); return st&&st.rest<=2&&st.rest>0; });
+  g('dashboard-warns').innerHTML = warns.length
+    ? `<div class="warn"><i class="ti ti-alert-triangle"></i><div><strong>Fast aufgebraucht:</strong> ${warns.map(k=>{const st=getKarteStatus(k);return `${k} (${st.rest}h)`;}).join(', ')}</div></div>` : '';
+
+  g('recent-log').innerHTML = logs.slice(0,5).length ? `<table>
+    <tr><th>Datum</th><th>Kunde</th><th>Produkt</th><th>Std</th></tr>
+    ${logs.slice(0,5).map(l=>`<tr><td>${fmtDate(l.datum)}</td><td>${l.kunde}</td><td>${l.produkt}</td><td>${l.einheit}h</td></tr>`).join('')}
+    </table>` : '<div class="tbl-empty">Noch keine Einträge</div>';
+
+  g('dash-karten').innerHTML = alleKK.length ? `<table>
+    <tr><th>Kunde</th><th>Rest</th><th>Fortschritt</th></tr>
+    ${alleKK.map(k=>{
+      const st=getKarteStatus(k);
+      const pct=Math.min(100,(st.used/st.total)*100);
+      const c=st.rest===0?'var(--red)':st.rest<=2?'var(--amber)':'var(--green)';
+      return `<tr><td>${k}</td><td style="font-weight:600;color:${c}">${st.rest}h</td>
+        <td style="min-width:80px"><div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${c}"></div></div></td></tr>`;
+    }).join('')}</table>` : '<div class="tbl-empty">Keine Karten vergeben</div>';
+}
+
+function renderLog() {
+  const q = (g('log-search')?.value||'').toLowerCase();
+  const logs = getLogs().filter(l=>!q||l.kunde.toLowerCase().includes(q)||l.produkt.toLowerCase().includes(q));
+  g('log-table').innerHTML = logs.length ? `<table>
+    <tr><th>Datum</th><th>Kunde</th><th>Produkt</th><th>Std</th><th>€</th><th>Zahlung</th><th>Notiz</th><th></th></tr>
+    ${logs.map(l=>{
+      const istOffen = !l.zahlung || l.zahlung === '' || l.zahlung === 'offen';
+      const zahlBtn = istOffen ? `<div style="display:flex;gap:4px;align-items:center">
+        <span class="badge badge-amber">offen</span>
+        <button class="btn" style="font-size:11px;padding:3px 7px;color:var(--green-dark);border-color:var(--green)" onclick="zahlungNachtragen('${l.id}')">✓ bezahlt</button>
+      </div>` : `<span class="badge ${zahlClass(l.zahlung)}">${l.zahlung}</span>`;
+      return `<tr>
+        <td>${fmtDate(l.datum)}</td><td>${l.kunde}</td><td style="white-space:nowrap">${l.produkt}</td>
+        <td>${l.einheit}h</td><td>€${l.betrag||0}</td>
+        <td>${zahlBtn}</td>
+        <td style="color:var(--text2);font-size:12px;max-width:120px">${l.notiz||''}</td>
+        <td><button class="btn btn-danger" onclick="deleteLog('${l.id}')"><i class="ti ti-trash"></i></button></td>
+      </tr>`;
+    }).join('')}</table>` : '<div class="tbl-empty">Keine Einträge</div>';
+}
+
+function renderKarten() {
+  const karten = getKarten();
+  const kundenM = [...new Set(karten.map(k=>k.kunde))];
+  g('karten-table').innerHTML = kundenM.length ? `<table>
+    <tr><th>Kunde</th><th>Karten</th><th>Genutzt</th><th>Rest</th><th>Status</th><th></th></tr>
+    ${kundenM.map(k=>{
+      const st=getKarteStatus(k);
+      const pct=Math.min(100,(st.used/st.total)*100);
+      const c=st.rest===0?'var(--red)':st.rest<=2?'var(--amber)':'var(--green)';
+      const kid=getKarten().find(kk=>kk.kunde===k)?.id;
+      return `<tr><td><strong>${k}</strong></td><td>${st.karten}x</td><td>${st.used}h</td>
+        <td style="font-weight:600;color:${c}">${st.rest}h</td>
+        <td style="min-width:70px"><div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${c}"></div></div></td>
+        <td><button class="btn btn-danger" onclick="deleteKarte('${kid}')"><i class="ti ti-trash"></i></button></td></tr>`;
+    }).join('')}</table>` : '<div class="tbl-empty">Noch keine Karten vergeben</div>';
+}
+
+function fillMonatSelect(elId) {
+  const el = g(elId); if (!el) return;
+  const allDaten = [...getLogs().map(l=>l.datum), ...getKarten().map(k=>k.datum)].filter(Boolean);
+  const monate = [...new Set(allDaten.map(d=>String(d).slice(0,7)))].sort().reverse();
+  const current = el.value;
+  el.innerHTML = '<option value="">Alle Monate</option>' +
+    monate.map(m => {
+      const [y,mo] = m.split('-');
+      return `<option value="${m}" ${m===current?'selected':''}>${MONATSNAMEN[parseInt(mo)-1]} ${y}</option>`;
+    }).join('');
+}
+
+function filterZ(z) {
+  activeZF=z;
+  document.querySelectorAll('#zahl-filter .filter-btn').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${z}'`));
+  });
+  renderEinnahmen();
+}
+
+function renderEinnahmen() {
+  const monat = g('monat-select')?.value || '';
+  const filterD = items => monat ? items.filter(e=>(String(e.datum)||'').startsWith(monat)) : items;
+  const allItems = filterD([
+    ...getKarten().map(k=>({...k, quelle:'10er Karte (Kauf)'})),
+    ...getLogs().filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete'].includes(l.produkt)).map(l=>({...l,quelle:l.produkt})),
+  ]);
+  const bar  = allItems.filter(e=>e.zahlung==='Bar').reduce((s,e)=>s+(e.betrag||0),0);
+  const pp   = allItems.filter(e=>e.zahlung==='PayPal').reduce((s,e)=>s+(e.betrag||0),0);
+  const bank = allItems.filter(e=>e.zahlung==='Bank').reduce((s,e)=>s+(e.betrag||0),0);
+  const aus  = allItems.filter(e=>!e.zahlung||e.zahlung==='').reduce((s,e)=>s+(e.betrag||0),0);
+  g('einnahmen-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Bar</div><div class="stat-val">€${bar.toLocaleString('de')}</div></div>
+    <div class="stat-card"><div class="stat-label">PayPal</div><div class="stat-val">€${pp.toLocaleString('de')}</div></div>
+    <div class="stat-card"><div class="stat-label">Bank</div><div class="stat-val">€${bank.toLocaleString('de')}</div></div>
+    <div class="stat-card"><div class="stat-label">Gesamt bezahlt</div><div class="stat-val" style="color:var(--green)">€${(bar+pp+bank).toLocaleString('de')}</div></div>
+    <div class="stat-card" style="grid-column:span 2"><div class="stat-label">Ausstehend</div><div class="stat-val" style="color:var(--amber)">€${aus.toLocaleString('de')}</div></div>
+  `;
+  const filtered = activeZF
+    ? (activeZF==='ausstehend' ? allItems.filter(e=>!e.zahlung||e.zahlung==='') : allItems.filter(e=>e.zahlung===activeZF))
+    : allItems;
+  g('einnahmen-table').innerHTML = filtered.length ? `<table>
+    <tr><th>Datum</th><th>Kunde</th><th>Quelle</th><th>€</th><th>Zahlung</th></tr>
+    ${filtered.map(e=>`<tr>
+      <td>${fmtDate(e.datum)}</td><td>${e.kunde}</td><td style="white-space:nowrap">${e.quelle}</td>
+      <td>€${(e.betrag||0).toLocaleString('de')}</td>
+      <td><span class="badge ${zahlClass(e.zahlung)}">${e.zahlung||'offen'}</span></td>
+    </tr>`).join('')}</table>` : '<div class="tbl-empty">Keine Einträge</div>';
+}
+
+function renderStunden() {
+  const monat = g('stunden-monat-select')?.value || '';
+  const filterD = items => monat ? items.filter(e=>(String(e.datum)||'').startsWith(monat)) : items;
+  const filteredLogs = filterD(getLogs());
+  const filteredKarten = filterD(getKarten());
+  const bezahltH = filteredLogs.filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete'].includes(l.produkt)).reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+  const kartenH = filteredLogs.filter(l=>l.produkt==='Stunde (10er Karte)').reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+  const kartenVerkauft = filteredKarten.length;
+  const gesamtH = filteredLogs.reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+
+  g('stunden-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Stunden gesamt</div><div class="stat-val">${gesamtH}</div></div>
+    <div class="stat-card"><div class="stat-label">Bezahlte Stunden</div><div class="stat-val" style="color:var(--green)">${bezahltH}</div><div class="stat-sub">direkt abgerechnet</div></div>
+    <div class="stat-card"><div class="stat-label">Karten-Stunden</div><div class="stat-val" style="color:var(--amber)">${kartenH}</div><div class="stat-sub">von 10er Karte</div></div>
+    <div class="stat-card"><div class="stat-label">Karten verkauft</div><div class="stat-val">${kartenVerkauft}</div><div class="stat-sub">= ${kartenVerkauft*10}h Kontingent</div></div>
+  `;
+
+  const produktGruppen = {};
+  filteredLogs.forEach(l => {
+    if (!produktGruppen[l.produkt]) produktGruppen[l.produkt] = { h:0, anzahl:0 };
+    produktGruppen[l.produkt].h += parseFloat(l.einheit)||0;
+    produktGruppen[l.produkt].anzahl++;
+  });
+  g('stunden-produkt-table').innerHTML = Object.keys(produktGruppen).length ? `<table>
+    <tr><th>Produkt</th><th>Einheiten</th><th>Stunden</th><th>Art</th></tr>
+    ${Object.entries(produktGruppen).sort((a,b)=>b[1].h-a[1].h).map(([prod,data])=>`<tr>
+      <td>${prod}</td><td>${data.anzahl}x</td><td>${data.h}h</td>
+      <td>${prod==='Stunde (10er Karte)'?'<span class="badge badge-amber">Karte</span>':'<span class="badge badge-green">Bezahlt</span>'}</td>
+    </tr>`).join('')}</table>` : '<div class="tbl-empty">Keine Einträge</div>';
+
+  g('stunden-karten-table').innerHTML = filteredKarten.length ? `<table>
+    <tr><th>Datum</th><th>Kunde</th><th>Zahlung</th><th>Reststand</th></tr>
+    ${filteredKarten.map(k=>{
+      const st=getKarteStatus(k.kunde);
+      return `<tr><td>${fmtDate(k.datum)}</td><td>${k.kunde}</td>
+        <td><span class="badge ${zahlClass(k.zahlung)}">${k.zahlung||'offen'}</span></td>
+        <td style="color:var(--green);font-weight:600">${st?st.rest+'h offen':'–'}</td></tr>`;
+    }).join('')}</table>` : '<div class="tbl-empty">Keine Karten in diesem Zeitraum</div>';
+}
+
+function doLookup() {
+  const q = g('lookup-input').value.trim();
+  const res = g('lookup-result');
+  if (!q) { res.innerHTML=''; return; }
+  const st = getKarteStatus(q);
+  const logs = getLogs().filter(l=>l.kunde===q);
+  const karten = getKarten().filter(k=>k.kunde===q);
+  if (!st&&!logs.length&&!karten.length) {
+    res.innerHTML=`<div class="card" style="text-align:center;color:var(--text3)"><i class="ti ti-user-off" style="font-size:32px"></i><p style="margin-top:8px">Kein Eintrag für <strong>${q}</strong></p></div>`;
+    return;
+  }
+  let html=`<div class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="avatar">${initials(q)}</div>
+      <div><div style="font-size:17px;font-weight:600">${q}</div>
+      <div style="font-size:13px;color:var(--text2)">${logs.length} Buchung(en) · ${karten.length} Karte(n)</div></div>
+    </div>`;
+  if (st) {
+    const c=st.rest===0?'var(--red)':st.rest<=2?'var(--amber)':'var(--green)';
+    html+=`<div style="background:var(--gray);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em">Reststand 10er Karte</div>
+      <div style="font-size:32px;font-weight:700;color:${c}">${st.rest}h offen</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px">${st.used}h genutzt von ${st.total}h (${st.karten}x Karte)</div>
+      <div class="prog-wrap" style="margin-top:8px"><div class="prog-bar" style="width:${Math.min(100,(st.used/st.total)*100)}%;background:${c}"></div></div>
+    </div>`;
+  }
+  if (logs.length) {
+    html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600;text-transform:uppercase">Letzte Buchungen</div>
+    <div class="tbl-wrap"><table>
+      <tr><th>Datum</th><th>Produkt</th><th>Std</th><th>Zahlung</th></tr>
+      ${logs.slice(0,6).map(l=>`<tr><td>${fmtDate(l.datum)}</td><td>${l.produkt}</td><td>${l.einheit}h</td><td><span class="badge ${zahlClass(l.zahlung)}">${l.zahlung||'offen'}</span></td></tr>`).join('')}
+    </table></div>`;
+  }
+  res.innerHTML = html+'</div>';
+}
+
+// ─── START ────────────────────────────────────────────────
+initApp();
+</script>
+</body>
+</html>
