@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -212,6 +211,7 @@
             <option value="Saisonpaket">Saisonpaket (4h · €400)</option>
             <option value="Platzreifekurs">Platzreifekurs (individuell)</option>
             <option value="Trackman Miete">Trackman Miete (1h · €15)</option>
+            <option value="Game Day Coaching">Game Day Coaching (1h · €490)</option>
           </select>
         </div>
         <div class="form-field"><label>Stunden</label><input type="number" id="f-einheit" value="1" min="0.5" step="0.5"></div>
@@ -339,8 +339,8 @@
 // ─── CONFIG ───────────────────────────────────────────────
 const SCRIPT_KEY = 'gt_script_url';
 const KUNDEN = ["Adrian Brennig","Alex Kohler","Alex Neumann","Alexander Schulz","Alexander von Lukowitz","Alexander Weishaupt","Andre Dreyer","Andreas Ho","Andreas Josten","Andreas Kahn","Andreas Mildschlag","Andreas Rausch","Anette Russ","Anja Weise","Anne Schuster","Anton Safonov","Arne Hosemann","Arno Hetzel","Bao","Bashaar","Basti Guericke","Basti Ruthenberg","Bernd Binnebös","Bernd Dreithaler","Bert Reents","Bertrand Malpel","Björn Buchholz","Björn Schwetge","Brita Tyedmers","Bruno Garcia","Cameron Norman","Chris Stotz","Christian Ahlers","Christian Danne","Christian Doerschlag","Christian Gärtner","Christian Goga","Christian Meine","Christian Zimmer","Christina Oelke","Claudia Hinz","Claudia Lipp","Claudia Loop","Conner Sadewasser","Constantin","Constantin Schünemann","Corina","Cuong","Dana Heise","Daniel Becker","Daniela Peth","Darryl Leung","Dat Van Le","David Gunderlach","David Hirst","David Tabellion","Dennis Dünnwald","Dennis Maruhn","Dieter Jentsch","Doreen","Elisa","Elke","Fabian Wiesner","Felix Benscheid","Felix Bönisch","Felix Würzberg","Finn","Frank Bayer","Frank Betzholz","Frank Dolejs","Frank Giersberg","Frank Stolp","Frauke","Friederike Herzberg","Gabi","Gabi Lück","Gernot","Hans Joachim Reck","Hans Jörg Halbartschlager","Heike Penning","Henrik Hinz","Henrik Kipp","Hien","Holger Hübsch","Holger Troll","Ingrid","Jacopo Nuzzi","James Cruickshank","James Norman","Jan Schaumann","Janis","Janis Thiede","Jannis Felge","Janus Thiede","Jeff","Johannes Knötig","Johannes Wolff","Jonas Hansen","Jonas vdB","Jörg","Jost Dieckhaus","Judith","Judith Jakob","Jule","Julia Schmäu","Julian Weitz","Julius Wieczorke","Justus Karohl","Kai Winkelmann","Karen Bergauer","Karl Bühring","Karsten","Karsten Kropat","Karsten Sommer","Kerstin","Kevin Wu","Kristy","Lauritz Gieseke","Linus Dahlander","Malte Labonte","Manh","Manuela Kramer","Marc Grewenig","Marc Knackstedt","Marco Leder","Maret","Marie Alof","Martin Kalinowski","Marvin Maiwald","Matthias Jungwirth","Matthias Mühlenberg","Max Hackelöer","Max Iliew","Max Paproth","Max Reichel","Maximilian Tischer","Mert Yildirim","Michael Gehrmann","Michaela","Mirco Paschen","Nadine Fritsche","Nadine Mayer","Natascha","Nesar Rahimi","Nico","Niklas Grunewald","Nikolaus Laurentius","Nils Brochwitz","Nils Larsson","Nina Fischer","Nina Kröger","Noah","Olaf Haker","Ole Hacker","Oli Vietzke","Paul Wagmüller","Peter","Peter Lecour","Peter Zeschke","Pier","Pier Dang","Pilar","Rafa","Rafif Yalda","Renate","René Jakubczyk","Rhan Gunderlach","Robert","Robert Junghanns","Robert Meusel","Robin Stegemann","Roman","Rosa Tabara","Rosi","Sabine Head-Kayser","Samir","Samuel Smelty","Sandra","Sandra Thiede","Sarah","Sarah Hansen","Sean Hannan","Seb Andrew","Sebastian Seifried","Sebastian Vieweger","Simone Gatz","Soheil Mirpour","Stefan","Stefan Betke","Stefan Hinz","Steffi Gwosc","Suk","Susanne Waclawiak","Susanne Waldow","Sven Hansen","Sven Markschläger","Thai","Thao Pham","Thomas Schoellkopf","Thomas Wittmann","Timo Herzberg","Timo Isensee","Tobi Schuhmann","Toni","Trung","Tülay","Türker","Ulf Kret","Unki","Ute Scholz","Van Nguyen","Vanessa","Victoria Pucko","Vivian Chen","Volker","Wanja Richter","Zack","Zelle"];
-const PREISE = {"Einzelstunde":100,"Stunde (10er Karte)":0,"Saisonpaket":400,"Platzreifekurs":null,"Trackman Miete":15};
-const STUNDEN_MAP = {"Einzelstunde":1,"Stunde (10er Karte)":1,"Saisonpaket":4,"Platzreifekurs":null,"Trackman Miete":1};
+const PREISE = {"Einzelstunde":100,"Stunde (10er Karte)":0,"Saisonpaket":400,"Platzreifekurs":null,"Trackman Miete":15,"Game Day Coaching":490};
+const STUNDEN_MAP = {"Einzelstunde":1,"Stunde (10er Karte)":1,"Saisonpaket":4,"Platzreifekurs":null,"Trackman Miete":1,"Game Day Coaching":1};
 const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 // ─── STATE ────────────────────────────────────────────────
