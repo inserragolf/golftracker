@@ -744,7 +744,7 @@ function renderEinnahmen() {
   const filterD = items => monat ? items.filter(e=>(String(e.datum)||'').startsWith(monat)) : items;
   const allItems = filterD([
     ...getKarten().map(k=>({...k, quelle:'10er Karte (Kauf)'})),
-    ...getLogs().filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete'].includes(l.produkt)).map(l=>({...l,quelle:l.produkt})),
+    ...getLogs().filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete','Game Day Coaching'].includes(l.produkt)).map(l=>({...l,quelle:l.produkt})),
   ]);
   const bar  = allItems.filter(e=>e.zahlung==='Bar').reduce((s,e)=>s+(e.betrag||0),0);
   const pp   = allItems.filter(e=>e.zahlung==='PayPal').reduce((s,e)=>s+(e.betrag||0),0);
@@ -774,7 +774,7 @@ function renderStunden() {
   const filterD = items => monat ? items.filter(e=>(String(e.datum)||'').startsWith(monat)) : items;
   const filteredLogs = filterD(getLogs());
   const filteredKarten = filterD(getKarten());
-  const bezahltH = filteredLogs.filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete'].includes(l.produkt)).reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
+  const bezahltH = filteredLogs.filter(l=>['Einzelstunde','Saisonpaket','Platzreifekurs','Trackman Miete','Game Day Coaching'].includes(l.produkt)).reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
   const kartenH = filteredLogs.filter(l=>l.produkt==='Stunde (10er Karte)').reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
   const kartenVerkauft = filteredKarten.length;
   const gesamtH = filteredLogs.reduce((s,l)=>s+(parseFloat(l.einheit)||0),0);
